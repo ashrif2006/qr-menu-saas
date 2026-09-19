@@ -1,0 +1,13 @@
+﻿namespace A7_menue.Models;
+public class Tenant
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Slug { get; set; } = string.Empty;
+    public string? LogoUrl { get; set; }
+    public bool IsActive { get; set; } = true;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    // Navigation Properties
+    public ICollection<MenuCategory> Categories { get; set; } = new List<MenuCategory>();
+}
