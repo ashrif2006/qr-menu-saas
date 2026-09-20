@@ -17,6 +17,8 @@ public class AppDbContext : DbContext
     public DbSet<MenuItemVariant> MenuItemVariants { get; set; }
     public DbSet<MenuItemVariantTranslation> MenuItemVariantTranslations { get; set; }
 
+    public DbSet<User> users { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -93,5 +95,15 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<MenuItemVariantTranslation>()
             .HasIndex(vt => new { vt.VariantId, vt.LanguageCode })
             .IsUnique();
+
+        //====User===
+        modelBuilder.Entity<User>()
+            .HasIndex(u => u.Email)
+            .IsUnique();
+        modelBuilder.Entity<User>()
+            .HasOne(u => u.Tenant)
+            .WithMany()
+            .HasForeignKey(U => U.TenantId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }
