@@ -10,57 +10,28 @@ namespace A7_menue.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AuthController(AppDbContext context , JwtService jwtService) : ControllerBase
+    public class AuthController(IAuthService authService) : ControllerBase
     {
         [HttpPost("register")]
         public async Task<ActionResult<AuthResponse>> Register(RegisterRequest request)
         {
-            var emailExists = await context.users.AnyAsync(u => u.Email == request.Email);
-            if (emailExists)
+           var result = await authService.RegisterAsync(request);
+            if(result == null)
             {
                 return BadRequest("Email is already registred");
             }
-            var tenant = new Tenant
-            {
-                Name = request.CafeName,
-                Slug = GenerateSlug(request.CafeName),
-            };
-            context.Tenants.Add(tenant);
-            await context.SaveChangesAsync();
-
-            var user = new User
-            {
-                TenantId = tenant.Id,
-                UserName = request.FullName,
-                Email = request.Email,
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password)
-            };
-            context.users.Add(user);
-            await context.SaveChangesAsync();
-            var token = jwtService.GenerateToken(user);
-            return Ok(new AuthResponse
-            {
-                Token = token,
-                FullName = request.FullName,
-                CafName = request.CafeName
-            });
+            return Ok(result);
         }
 
         [HttpPost("login")]
         public async Task<ActionResult<AuthResponse>> Login(LoginRequest request)
         {
-            var user = await context.users.FirstOrDefaultAsync(u => u.Email == request.Email);
-            if(user == null || BCrypt.Net.BCrypt.Verify(request.Password , user.PasswordHash))
+            var reslut = await authService.LoginAsync(request);
+            if (reslut == null) 
             {
-                return Unauthorized("Invalid email or password");
+                return Unauthorized("Invalid Email Or Password ");
             }
-            var token = jwtService.GenerateToken(user);
-            return Ok(new AuthResponse
-            {
-                Token = token,
-                FullName = user.UserName,
-                CafName = user.UserName
-            });
+            return Ok(reslut);
         }
 
 
