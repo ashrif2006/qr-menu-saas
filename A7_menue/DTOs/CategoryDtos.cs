@@ -1,9 +1,13 @@
-﻿namespace A7_menue.DTOs;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace A7_menue.DTOs;
 
 public class CreateCategoryRequest
 {
     public int SortOrder { get; set; }
+    [Required(ErrorMessage ="Arabic name is requierd")]
     public string NameAr { get; set; } = string.Empty;
+    [Required(ErrorMessage = "English name is requierd")]
     public string NameEn { get; set; } = string.Empty;
 }
 
