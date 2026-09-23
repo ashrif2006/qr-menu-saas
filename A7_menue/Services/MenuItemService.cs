@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace A7_menue.Services;
 
-public class MenuItemService(AppDbContext context) : IMenuItemService
+public class MenuItemService(AppDbContext context , IImageUploadService imageUploadService) : IMenuItemService
 {
     public async Task<List<MenuItemResponse>> GetAllAsync(int tenantId)
     {
@@ -164,5 +164,20 @@ public class MenuItemService(AppDbContext context) : IMenuItemService
         item.IsAvailable = !item.IsAvailable;
         await context.SaveChangesAsync();
         return true;
+    }
+
+    public async Task<string?> UploadItemImageAsync(int tenantId, int itemId, IFormFile imageFile)
+    {
+        var item = await context.MenuItems.FirstOrDefaultAsync(i => i.Id == itemId && i.TenantId == tenantId);
+        if (item == null) return null;
+
+        if(!string.IsNullOrEmpty(item.ImageUrl))
+        {
+            await imageUploadService.DeleteImageAsync(item.ImageUrl);
+        }
+        var newImageUrl = await imageUploadService.UploadImageAsync(imageFile);
+        item.ImageUrl = newImageUrl;
+        await context.SaveChangesAsync();
+        return newImageUrl;
     }
 }

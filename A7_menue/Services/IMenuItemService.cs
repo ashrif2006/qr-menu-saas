@@ -10,5 +10,7 @@ public interface IMenuItemService
     Task<MenuItemResponse?> UpdateAsync(int tenantId, int itemId, UpdateMenuItemRequest request);
     Task<bool> DeleteAsync(int tenantId, int itemId);
     Task<bool> ToggleAvailabilityAsync(int tenantId, int itemId);
+
+    Task<string?> UploadItemImageAsync(int tenantId, int itemId, IFormFile imageFile);
 }
 

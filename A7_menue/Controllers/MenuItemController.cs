@@ -8,7 +8,9 @@ namespace A7_menue.Controllers;
 [Route("api/[controller]")]
 [ApiController]
 [Authorize]
-public class MenuItemController(IMenuItemService menuItemService, ICurrentUserService currentUser) : ControllerBase
+public class MenuItemController(
+    IMenuItemService menuItemService,
+    ICurrentUserService currentUser) : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<List<MenuItemResponse>>> GetAll()
@@ -60,5 +62,24 @@ public class MenuItemController(IMenuItemService menuItemService, ICurrentUserSe
         var toggled = await menuItemService.ToggleAvailabilityAsync(tenantId, id);
         if (!toggled) return NotFound();
         return NoContent();
+    }
+
+    [HttpPost("{id}/upload-image")]
+    public async Task<IActionResult> UploadImage(int id , IFormFile file)
+    {
+        var tenantId = currentUser.TenantId!.Value;
+        try
+        {
+            var imageUrl = await menuItemService.UploadItemImageAsync(tenantId, id, file);
+            if(imageUrl == null)
+            {
+                return NotFound("Menu item not found .");
+            }
+            return Ok(new { imageUrl });
+        }
+        catch(Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 }
