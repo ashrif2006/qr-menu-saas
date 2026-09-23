@@ -41,6 +41,7 @@ builder.Services.AddScoped<IMenuItemService, MenuItemService>();
 builder.Services.AddScoped<IPublicMenuService, PublicMenuService>();
 builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("Cloudinary"));
 builder.Services.AddScoped<IImageUploadService , ImageUploadService>();
+builder.Services.AddScoped<IQrCodeService , QrCodeService>();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
