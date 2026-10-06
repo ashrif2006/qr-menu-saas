@@ -89,24 +89,7 @@ public class MenuItemService(AppDbContext context , IImageUploadService imageUpl
             }
         };
 
-        if (request.Variants != null && request.Variants.Count > 0)
-        {
-            foreach (var v in request.Variants)
-            {
-                item.Variants.Add(new MenuItemVariant
-                {
-                    SortOrder = v.SortOrder,
-                    Price = v.Price,
-                    IsAvailable = true,
-                    Translations = new List<MenuItemVariantTranslation>
-                    {
-                        new() { LanguageCode = "ar", Name = v.NameAr },
-                        new() { LanguageCode = "en", Name = v.NameEn }
-                    }
-                });
-            }
-        }
-
+        item.Variants = BuildVariants(request.Variants);
         context.MenuItems.Add(item);
         await context.SaveChangesAsync();
 
@@ -117,6 +100,7 @@ public class MenuItemService(AppDbContext context , IImageUploadService imageUpl
     {
         var item = await context.MenuItems
             .Include(i => i.Translations)
+            .Include(i => i.Variants)
             .FirstOrDefaultAsync(i => i.Id == itemId && i.TenantId == tenantId);
 
         if (item == null) return null;
@@ -125,11 +109,13 @@ public class MenuItemService(AppDbContext context , IImageUploadService imageUpl
             .AnyAsync(c => c.Id == request.CategoryId && c.TenantId == tenantId);
         if (!categoryExists) return null;
 
+        var hasVariants = request.Variants is { Count: > 0 };
+
         item.CategoryId = request.CategoryId;
         item.SortOrder = request.SortOrder;
         item.IsAvailable = request.IsAvailable;
         item.ImageUrl = request.ImageUrl;
-        item.Price = request.Price;
+        item.Price = hasVariants ? null : request.Price;
 
         var arT = item.Translations.FirstOrDefault(t => t.LanguageCode == "ar");
         if (arT != null) { arT.Name = request.NameAr; arT.Description = request.DescriptionAr; }
@@ -137,11 +123,14 @@ public class MenuItemService(AppDbContext context , IImageUploadService imageUpl
         var enT = item.Translations.FirstOrDefault(t => t.LanguageCode == "en");
         if (enT != null) { enT.Name = request.NameEn; enT.Description = request.DescriptionEn; }
 
+        context.MenuItemVariants.RemoveRange(item.Variants);
+        foreach (var v in BuildVariants(request.Variants))
+            item.Variants.Add(v);
+
         await context.SaveChangesAsync();
 
         return await GetByIdAsync(tenantId, item.Id);
     }
-
     public async Task<bool> DeleteAsync(int tenantId, int itemId)
     {
         var item = await context.MenuItems
@@ -179,5 +168,22 @@ public class MenuItemService(AppDbContext context , IImageUploadService imageUpl
         item.ImageUrl = newImageUrl;
         await context.SaveChangesAsync();
         return newImageUrl;
+    }
+
+    private static List<MenuItemVariant> BuildVariants(List<MenuItemVariantRequest>? requests)
+    {
+        if (requests == null || requests.Count == 0) return new List<MenuItemVariant>();
+
+        return requests.Select(v => new MenuItemVariant
+        {
+            SortOrder = v.SortOrder,
+            Price = v.Price,
+            IsAvailable = true,
+            Translations = new List<MenuItemVariantTranslation>
+        {
+            new() { LanguageCode = "ar", Name = v.NameAr },
+            new() { LanguageCode = "en", Name = v.NameEn }
+        }
+        }).ToList();
     }
 }

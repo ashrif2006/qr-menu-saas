@@ -47,7 +47,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 //CORS
-var frontendUrl = builder.Configuration["FrontendUrl"] ?? "http://localhost:3000";
+var frontendUrl = builder.Configuration["FrontendUrl"] ?? "http://localhost:4200";
 
 builder.Services.AddCors(options =>
 {
@@ -69,7 +69,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseCors("AllowFronend");
+app.UseCors("AllowFrontend");
 
 app.UseAuthentication();
 app.UseAuthorization();

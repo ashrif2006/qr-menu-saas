@@ -7,7 +7,7 @@ public class QrCodeService(IConfiguration configuration) : IQrCodeService
     public byte[] GenerateQrCode(string slug)
     {
         var baseUrl = configuration["PublicMenuBaseUrl"];
-        var menuUrl = $"http://localhost:5151/api//public/menu/{slug}";
+        var menuUrl = $"{baseUrl}/{slug}";
 
         using var qrGenerator = new QRCodeGenerator();
         using var qrCodeData = qrGenerator.CreateQrCode(menuUrl, QRCodeGenerator.ECCLevel.Q);
